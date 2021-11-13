@@ -1,4 +1,4 @@
-# VZ200-Aesprite-Export
+# VZ200-Aseprite-Export
 LUA script to export sprite data to VZ200 format
 
 VZ200 sprite data export by Jason "WauloK" Oakley
