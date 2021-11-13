@@ -14,4 +14,4 @@ Place this file in the Aesprite scripts directory.
 Usually on Windows: %APPDATA%\Aseprite\scripts
 
 I've also included the Indexed palette to use.
-Load it in Aesprite.
+Load it in Aseprite.
