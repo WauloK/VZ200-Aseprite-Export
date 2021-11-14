@@ -1,5 +1,6 @@
 # VZ200-Aseprite-Export
-LUA script to export sprite data to VZ200 format
+LUA script to export sprite data to VZ200 Assembly Hex format
+or TRSE byte Array in Decimal format
 
 VZ200 sprite data export by Jason "WauloK" Oakley
 https://www.BlueBilby.com/
