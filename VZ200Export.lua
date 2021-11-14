@@ -28,7 +28,7 @@ end
 -- Get and convert pixel data in Hex Assembly format
 local function getTileData(img, x, y)
     local res = ""
-    local dbformat = "" 
+    local dbformat = ""
     if choice.trs80CoCoFormat then
         dbformat = "FCB"
     else
@@ -131,19 +131,6 @@ local function exportFrame(useLookup, frm)
         table.insert(result, column)
     end
     return result
-end
-
-function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
 end
 
 local dlg = Dialog()
