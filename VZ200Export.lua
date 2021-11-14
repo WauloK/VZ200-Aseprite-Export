@@ -195,7 +195,7 @@ if choice.ok then
         end
     end
     if choice.trseDecArrayFormat then
-        io.write(")")
+        io.write(");")
     end    
     io.close(f)
 end
