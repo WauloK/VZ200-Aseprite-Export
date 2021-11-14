@@ -8,6 +8,7 @@
 -- Usually on Windows: %APPDATA%\Aseprite\scripts
 
 local sprite = app.activeSprite
+local choice = ""
 
 -- Check constrains
 if sprite == nil then
@@ -27,7 +28,11 @@ end
 -- Get and convert pixel data in Hex Assembly format
 local function getTileData(img, x, y)
     local res = ""
-
+    if choice.trs80CoCoFormat then
+        dbformat = "FCB"
+    else
+        dbformat = "DB"
+    end
     for  cy = 0, sprite.height-1 do
         local val = 0
         -- VZ200 has 2 bits per pixel and 4 pixels per byte
@@ -44,12 +49,12 @@ local function getTileData(img, x, y)
                 res = res .. ", "
             else
                 if cy < sprite.height-1 then
-                    res = res .. "\nDB "
+                    res = res .. "\n"..dbformat.." "
                 end
             end
         end
     end
-    return "DB " .. res .. "\n"
+    return dbformat .. " " .. res .. "\n"
 end
 
 -- Get and convert pixel data in TRSE Decimal Array format
@@ -78,7 +83,6 @@ end
 
 local spriteLookup = {}
 local lastLookupId = 0
-local choice = ""
 
 -- Export frame data in Assembly Hex format - used in single or all sprite output
 local function exportFrame(useLookup, frm)
@@ -160,6 +164,10 @@ dlg:newrow()
 dlg:check{ id="trseDecArrayFormat",
            text="Create TRSE Array data in Decimal",
            selected=false}         
+dlg:newrow()           
+dlg:check{ id="trs80CoCoFormat",
+           text="Change Assembly to TRS80 Coco opcode",
+           selected=false}
 
 dlg:button{ id="ok", text="OK" }
 dlg:button{ id="cancel", text="Cancel" }
