@@ -28,6 +28,7 @@ end
 -- Get and convert pixel data in Hex Assembly format
 local function getTileData(img, x, y)
     local res = ""
+    local dbformat = "" 
     if choice.trs80CoCoFormat then
         dbformat = "FCB"
     else
