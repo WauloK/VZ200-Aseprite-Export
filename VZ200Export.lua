@@ -82,6 +82,27 @@ local function getTileDataTRSE(img, x, y)
     return res
 end
 
+-- Get and convert pixel data in binary format
+local function getTileDataBinary(img, x, y)
+    local res = ""
+
+    for  cy = 0, sprite.height-1 do
+        local val = 0
+        -- VZ200 has 2 bits per pixel and 4 pixels per byte
+        for cx = 0, sprite.width-1, 4 do
+            value = 0
+            for xbyte = 0, 3 do
+                px = img:getPixel(cx+x+xbyte, cy+y)
+                -- Index 0 is transparent and not used for VZ200
+                px = px - 1
+                value = value << 2 | px
+            end
+            res = res .. (string.char(value))
+        end
+    end
+    return res
+end
+
 local spriteLookup = {}
 local lastLookupId = 0
 
@@ -100,11 +121,15 @@ local function exportFrame(useLookup, frm)
         local column = {}
         local data = ""
         for y = 0, sprite.height-1, sprite.height do
+
+            -- Gather decimal values
             if choice.trseDecArrayFormat then
                 data = getTileDataTRSE(img, x, y)
                 if frm == #sprite.frames or choice.onlyCurrentFrame then
                     data = string.sub(data,1,-3)
                 end
+            elseif choice.binaryFileFormat then
+                data = getTileDataBinary(img, x, y)
             else
                 data = getTileData(img, x, y)
             end
@@ -134,56 +159,81 @@ local function exportFrame(useLookup, frm)
 end
 
 local dlg = Dialog()
+dlg:label{ id="info",
+           text="Outputs data in MC6847 2-bits-per-pixel format"}
 dlg:file{ id="exportFile",
           label="File",
           title="VZ200-Assembler Export",
           open=false,
           save=true,
-          filetypes={"asm", "inc", "z80", "txt" }}
+          filetypes={"asm", "bin", "inc", "z80", "txt" }}
+
+dlg:newrow()           
+dlg:radio{ id="VZ200AssemblyFormat",
+           text="Output VZ200 Assembly Hex data",
+           selected=true} 
+dlg:newrow()           
+dlg:radio{ id="trseDecArrayFormat",
+           text="Output TRSE Array data in Decimal",
+           selected=false}         
+dlg:newrow()           
+dlg:radio{ id="trs80CoCoFormat",
+           text="Output Assembly to TRS80 Coco opcode",
+           selected=false}
+dlg:newrow()           
+dlg:radio{ id="binaryFileFormat",
+           text="Output to a binary file",
+           selected=false}
 
 dlg:check{ id="onlyCurrentFrame",
            text="Export only current frame",
-           selected=true }
+           selected=false }
 dlg:newrow()           
 dlg:check{ id="removeDuplicates",
            text="Remove duplicate tiles",
            selected=false}
-dlg:newrow()           
-dlg:check{ id="trseDecArrayFormat",
-           text="Create TRSE Array data in Decimal",
-           selected=false}         
-dlg:newrow()           
-dlg:check{ id="trs80CoCoFormat",
-           text="Change Assembly to TRS80 Coco opcode",
-           selected=false}
-
 dlg:button{ id="ok", text="OK" }
 dlg:button{ id="cancel", text="Cancel" }
 dlg:show()
 choice = dlg.data
 
 if choice.ok then
-    local f = io.open(choice.exportFile, "w")
+    -- Open a Binary file or Text file
+    if choice.binaryFileFormat then
+        f = io.open(choice.exportFile, "wb")
+    else
+        f = io.open(choice.exportFile, "w")
+    end
+
     io.output(f)
 
     local mapData = {}
 
+    -- Output TRSE array prefix
     if choice.trseDecArrayFormat then
         io.write("spriteData: array[] of byte =(")
     end
 
+    -- Output just the one frame?
     if choice.onlyCurrentFrame then
         table.insert(mapData, exportFrame(choice.removeDuplicates, app.activeFrame))
     else
         for i = 1,#sprite.frames do
-            if not choice.trseDecArrayFormat then
+            if not choice.trseDecArrayFormat and not choice.binaryFileFormat then
                 io.write(string.format(";Frame %d\n", i))
             end
             table.insert(mapData, exportFrame(choice.removeDuplicates, i))
         end
     end
+
+    -- Output TRSE array suffix
     if choice.trseDecArrayFormat then
         io.write(");")
-    end    
+    end
+
+    -- Write data out
+    io.flush()
+
+    -- Close file
     io.close(f)
 end
