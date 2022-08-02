@@ -97,7 +97,7 @@ local function getTileDataBinary(img, x, y)
                 px = px - 1
                 value = value << 2 | px
             end
-            res = res .. (string.char(value))
+            res = res .. string.char(value)
         end
     end
     return res
@@ -170,27 +170,27 @@ dlg:file{ id="exportFile",
 
 dlg:newrow()           
 dlg:radio{ id="VZ200AssemblyFormat",
-           text="Output VZ200 Assembly Hex data",
+           text=" Output VZ200 Assembly Hex data",
            selected=true} 
 dlg:newrow()           
 dlg:radio{ id="trseDecArrayFormat",
-           text="Output TRSE Array data in Decimal",
+           text=" Output TRSE Array data in Decimal",
            selected=false}         
 dlg:newrow()           
 dlg:radio{ id="trs80CoCoFormat",
-           text="Output Assembly to TRS80 Coco opcode",
+           text=" Output TRS80 Coco Assembly Hex data",
            selected=false}
 dlg:newrow()           
 dlg:radio{ id="binaryFileFormat",
-           text="Output to a binary file",
+           text=" Output to a binary file",
            selected=false}
 
 dlg:check{ id="onlyCurrentFrame",
-           text="Export only current frame",
+           text=" Export only current frame",
            selected=false }
 dlg:newrow()           
 dlg:check{ id="removeDuplicates",
-           text="Remove duplicate tiles",
+           text=" Remove duplicate tiles",
            selected=false}
 dlg:button{ id="ok", text="OK" }
 dlg:button{ id="cancel", text="Cancel" }
