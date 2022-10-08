@@ -11,15 +11,17 @@ local sprite = app.activeSprite
 local choice = ""
 
 -- Check constrains
+-- Sprite must exist
 if sprite == nil then
   app.alert("No Sprite...")
   return
 end
+-- Color mode must be indexed
 if sprite.colorMode ~= ColorMode.INDEXED then
-  app.alert("Sprite needs to be indexed")
+  app.alert("Sprite needs to be indexed.")
   return
 end
-
+-- Sprite width must be a multiple of 4
 if (sprite.width % 4) ~= 0 then
   app.alert("Sprite width needs to be a multiple of 4")
   return
@@ -83,7 +85,7 @@ local function getTileDataTRSE(img, x, y)
 end
 
 -- Get and convert pixel data in binary format
-local function getTileDataBinary(img, x, y)
+local function getTileDataHiresBinary(img, x, y)
     local res = ""
 
     for  cy = 0, sprite.height-1 do
@@ -99,6 +101,22 @@ local function getTileDataBinary(img, x, y)
             end
             res = res .. string.char(value)
         end
+    end
+    return res
+end
+
+-- Get and convert font pixel data in binary format
+local function getTileDataFontBinary(img, x, y)
+    local res = ""
+
+    for  cy = 0, 11 do
+        local value = 0
+
+        for cx = 0, 7 do
+            px = img:getPixel(cx+x, cy+y)
+            value = value << 1 | px
+        end
+        res = res .. string.char(value)
     end
     return res
 end
@@ -128,8 +146,10 @@ local function exportFrame(useLookup, frm)
                 if frm == #sprite.frames or choice.onlyCurrentFrame then
                     data = string.sub(data,1,-3)
                 end
-            elseif choice.binaryFileFormat then
-                data = getTileDataBinary(img, x, y)
+            elseif choice.hiresBinaryFileFormat then
+                data = getTileDataHiresBinary(img, x, y)
+            elseif choice.fontBinaryFileFormat then
+                data = getTileDataFontBinary(img, x, y)
             else
                 data = getTileData(img, x, y)
             end
@@ -160,13 +180,16 @@ end
 
 local dlg = Dialog()
 dlg:label{ id="info",
-           text="Outputs data in MC6847 2-bits-per-pixel format"}
+           text="Outputs data in MC6847 2-bits-per-pixel format\n  or a hires 8x12 pixel monochrome font"}
+dlg:newrow()
+dlg:label{ id="info2",
+           text="  or a hires 8x12 pixel monochrome font"}
 dlg:file{ id="exportFile",
           label="File",
           title="VZ200-Assembler Export",
           open=false,
           save=true,
-          filetypes={"asm", "bin", "inc", "z80", "txt" }}
+          filetypes={"asm", "bin", "fnt", "inc", "z80", "txt" }}
 
 dlg:newrow()           
 dlg:radio{ id="VZ200AssemblyFormat",
@@ -181,10 +204,13 @@ dlg:radio{ id="trs80CoCoFormat",
            text=" Output TRS80 Coco Assembly Hex data",
            selected=false}
 dlg:newrow()           
-dlg:radio{ id="binaryFileFormat",
-           text=" Output to a binary file",
+dlg:radio{ id="hiresBinaryFileFormat",
+           text=" Output hires 2bbp data to a binary file",
            selected=false}
-
+dlg:newrow()
+dlg:radio{ id="fontBinaryFileFormat",
+           text=" Output VZ200 font data to a binary file",
+           selected=false}
 dlg:check{ id="onlyCurrentFrame",
            text=" Export only current frame",
            selected=false }
@@ -198,8 +224,25 @@ dlg:show()
 choice = dlg.data
 
 if choice.ok then
+    -- Cannot output one font character
+    if choice.fontBinaryFileFormat and choice.onlyCurrentFrame then
+      app.alert("Only full font of 256 chars exportable.")
+      return
+    end
+    -- Fonts must be 8x12 pixels
+    if (choice.fontBinaryFileFormat) then
+        if sprite.width ~= 8 or sprite.height ~= 12 then
+            app.alert("Fonts must be 8 x 12 pixels in size!")
+            return
+        end
+        if #sprite.frames < 256 then
+            app.alert("Warning! There should be 256 sprites/characters for exporting!")
+        end
+    end
+
     -- Open a Binary file or Text file
-    if choice.binaryFileFormat then
+    -- Support for 128x64 hires MODE(1) or VZ200 font
+    if choice.hiresBinaryFileFormat or choice.fontBinaryFileFormat then
         f = io.open(choice.exportFile, "wb")
     else
         f = io.open(choice.exportFile, "w")
@@ -219,7 +262,7 @@ if choice.ok then
         table.insert(mapData, exportFrame(choice.removeDuplicates, app.activeFrame))
     else
         for i = 1,#sprite.frames do
-            if not choice.trseDecArrayFormat and not choice.binaryFileFormat then
+            if not choice.trseDecArrayFormat and not choice.hiresBinaryFileFormat and not choice.fontBinaryFileFormat then
                 io.write(string.format(";Frame %d\n", i))
             end
             table.insert(mapData, exportFrame(choice.removeDuplicates, i))
