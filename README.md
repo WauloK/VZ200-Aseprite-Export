@@ -67,3 +67,5 @@ FCB $44, $44
 FCB $11, $11
 
 FCB $44, $44
+
+Now also supporting binary file output of hires 2bbp sprite data and 1bit character font data.
