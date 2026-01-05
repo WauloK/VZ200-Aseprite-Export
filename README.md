@@ -3,6 +3,8 @@ LUA script to export sprite data to VZ200 Assembly Hex format
 
 or TRSE byte Array in Decimal format
 
+or Z88DK char Array in Decimal format
+
 or use TRS-80 Coco FCB opcode for Assembly Hex format
 
 
