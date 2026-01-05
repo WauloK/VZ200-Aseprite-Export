@@ -22,6 +22,7 @@ https://en.wikipedia.org/wiki/Motorola_6847
 
 Place this file in the Aseprite scripts directory.
 Usually on Windows: %APPDATA%\Aseprite\scripts
+and on Linux: ~/.config/aseprite/scripts/
 
 I've also included the Indexed palette to use. Load it in Aseprite.
 
@@ -51,6 +52,9 @@ TRSE byte Array:
 
 spriteData: array[] of byte =(001, 064, 064, 001, 128, 002, 192, 003, 000, 000, 068, 068, 017, 017, 068, 068);
 
+Z88DK char Array:
+
+char sprite[16]={15, 240, 63, 124, 255, 223, 255, 255, 255, 255, 251, 255, 62, 252, 15, 240};
 
 TRS-80 Coco Assembly:
 
