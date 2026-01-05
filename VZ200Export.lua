@@ -75,7 +75,11 @@ local function getTileDataTRSE(img, x, y)
                 px = px - 1
                 value = value << 2 | px
             end
-            res = res .. string.format("%03d", value)
+            if choice.z88dkDecArrayFormat then
+                res = res .. string.format("%d", value)
+            else
+                res = res .. string.format("%03d", value)
+            end
             if cy < sprite.height then
                 res = res .. ", "
             end
@@ -141,7 +145,7 @@ local function exportFrame(useLookup, frm)
         for y = 0, sprite.height-1, sprite.height do
 
             -- Gather decimal values
-            if choice.trseDecArrayFormat then
+            if choice.trseDecArrayFormat or choice.z88dkDecArrayFormat then
                 data = getTileDataTRSE(img, x, y)
                 if frm == #sprite.frames or choice.onlyCurrentFrame then
                     data = string.sub(data,1,-3)
@@ -198,7 +202,11 @@ dlg:radio{ id="VZ200AssemblyFormat",
 dlg:newrow()           
 dlg:radio{ id="trseDecArrayFormat",
            text=" Output TRSE Array data in Decimal",
-           selected=false}         
+           selected=false}        
+dlg:newrow()           
+dlg:radio{ id="z88dkDecArrayFormat",
+           text=" Output Z88DK Array data in Decimal",
+           selected=false}    
 dlg:newrow()           
 dlg:radio{ id="trs80CoCoFormat",
            text=" Output TRS80 Coco Assembly Hex data",
@@ -257,12 +265,17 @@ if choice.ok then
         io.write("spriteData: array[] of byte =(")
     end
 
+    -- Output TRSE array prefix
+    if choice.z88dkDecArrayFormat then
+        io.write(string.format("char sprite[%d]={", (#sprite.frames*sprite.height*(sprite.width/4))))
+    end
+
     -- Output just the one frame?
     if choice.onlyCurrentFrame then
         table.insert(mapData, exportFrame(choice.removeDuplicates, app.activeFrame))
     else
         for i = 1,#sprite.frames do
-            if not choice.trseDecArrayFormat and not choice.hiresBinaryFileFormat and not choice.fontBinaryFileFormat then
+            if not choice.trseDecArrayFormat and not choice.z88dkDecArrayFormat and not choice.hiresBinaryFileFormat and not choice.fontBinaryFileFormat then
                 io.write(string.format(";Frame %d\n", i))
             end
             table.insert(mapData, exportFrame(choice.removeDuplicates, i))
@@ -272,6 +285,10 @@ if choice.ok then
     -- Output TRSE array suffix
     if choice.trseDecArrayFormat then
         io.write(");")
+    end
+    -- Output Z88DK array suffix
+    if choice.z88dkDecArrayFormat then
+        io.write("};")
     end
 
     -- Write data out
